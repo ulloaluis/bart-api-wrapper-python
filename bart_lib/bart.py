@@ -180,7 +180,7 @@ class Bart:
                         direct = departure['direction']
                         if (plat is not None and str(plat) != platform) or \
                                 (direction is not None and direction != direct):
-                            pass
+                            continue
                         print("%s bart on platform %s leaving in %s minutes!" % (color, platform, minutes))
                 print()  # spacing b/w each station
 
@@ -449,7 +449,6 @@ class Bart:
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
-            print(r.text)
             print(help_msg)
             print("stn_help(), stninfo(), stnaccess(), stns()\n")
 
