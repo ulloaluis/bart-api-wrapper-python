@@ -92,7 +92,7 @@ will give you all of the necessary details about a method or class.
     version()
    
 ## Installing
-There's a package on pip.
+There's a package on PyPI.
 
     pip3 install bart-api-ulloa
 
