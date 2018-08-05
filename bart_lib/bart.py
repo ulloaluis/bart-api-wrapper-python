@@ -139,7 +139,7 @@ class Bart:
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
             print(help_msg)
-            print("bsa(), train_count(), elev(), elev_help()")
+            print("bsa(), train_count(), elev(), elev_help()\n")
 
     def etd(self, orig, plat=None, direction=None):
         """
@@ -192,7 +192,7 @@ class Bart:
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
             print(help_msg)
-            print("etd(), etd_help()")
+            print("etd(), etd_help()\n")
 
     def route_info(self, route_num, sched_num=None, date=None):
         """
@@ -245,7 +245,7 @@ class Bart:
         if "error" not in r.text:
             data = r.json()['root']['message']['help']['#cdata-section']
             print(data)
-            print("route_help(), routes(), route_info()")
+            print("route_help(), routes(), route_info()\n")
 
     def arrive(self, orig, dest, time=None, date=None, b=None, a=None, command="arrive"):
         """
@@ -390,7 +390,7 @@ class Bart:
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
             print(help_msg)
-            print("arrive(), depart(), fare(), sched_help(), holiday(), routesched(), scheds(), special(), stnsched()")
+            print("arrive(), depart(), fare(), sched_help(), holiday(), routesched(), scheds(), special(), stnsched()\n")
 
     def stninfo(self, orig):
         """
@@ -457,7 +457,7 @@ class Bart:
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
             print(help_msg)
-            print("stn_help(), stninfo(), stnaccess(), stns()")
+            print("stn_help(), stninfo(), stnaccess(), stns()\n")
 
     def version(self):
         """ Prints version details. """
@@ -483,29 +483,29 @@ class Bart:
 if __name__ == "__main__":
     # example usage, see test.py for import formatting
     bart = Bart()
-    bart.route_info(1)
-    bart.routes()
-    bart.route_help()
-    bart.bsa()
-    bart.train_count()
-    bart.elev()
-    bart.elev_help()
-    bart.etd('ALL')
-    bart.etd('RICH', plat=2)
-    bart.etd('RICH', direction='s')
-    bart.etd('RICH', plat=2, direction='s')
-    bart.etd_help()
-    bart.version()
-    bart.stninfo('24TH')
-    bart.stns()
-    bart.stnaccess('12th')
-    bart.stn_help()
-    bart.holiday()
+    # bart.route_info(1)
+    # bart.routes()
+    # bart.route_help()
+    # bart.bsa()
+    # bart.train_count()
+    # bart.elev()
+    # bart.elev_help()
+    # bart.etd('ALL')
+    # bart.etd('RICH', plat=2)
+    # bart.etd('RICH', direction='s')
+    # bart.etd('RICH', plat=2, direction='s')
+    # bart.etd_help()
+    # bart.version()
+    # bart.stninfo('24TH')
+    # bart.stns()
+    # bart.stnaccess('12th')
+    # bart.stn_help()
+    # bart.holiday()
     bart.help()
-    bart.arrive("ASHB", "CIVC")
-    bart.depart("ASHB", "CIVC")
-    bart.fare("ASHB", "CIVC")
-    bart.routesched(1)
-    bart.scheds()
-    bart.special()
-    bart.stnsched("ASHB")
+    # bart.arrive("ASHB", "CIVC")
+    # bart.depart("ASHB", "CIVC")
+    # bart.fare("ASHB", "CIVC")
+    # bart.routesched(1)
+    # bart.scheds()
+    # bart.special()
+    # bart.stnsched("ASHB")
