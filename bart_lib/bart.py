@@ -178,9 +178,6 @@ class Bart:
                         platform = departure['platform']
                         color = departure['color']
                         direct = departure['direction']
-                        if (plat is not None and str(plat) != platform) or \
-                                (direction is not None and direction != direct):
-                            continue
                         print("%s bart on platform %s leaving in %s minutes!" % (color, platform, minutes))
                 print()  # spacing b/w each station
 
