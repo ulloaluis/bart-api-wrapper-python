@@ -204,13 +204,6 @@ class Bart:
 
         Note: don't use schedule and date together, otherwise date is dropped
         """
-        # this will print all the valid routes, might be smarter to have a while loop
-        # and to restrict 9,10, 13-18 since they don't have routes. only have it like this
-        # so we can see later on if it's only ever route nums 1-8, 11-12, 19-20
-        # NOTE: better way of doing this -> cmd routes, loop through array, removing 1-21 for loop
-        # sched_num = None    # defaults to current schedule
-        # date = None         # likely defaults to today, but can also write 'today' or 'now' as date
-
         cmd = 'routeinfo'
         payload = {'cmd': cmd, 'key': self.key, 'route': route_num, 'sched': sched_num, 'date': date, 'json': 'y'}
         r = requests.get(self.ROUTE_API_LINK, params=payload)
@@ -456,6 +449,7 @@ class Bart:
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
+            print(r.text)
             print(help_msg)
             print("stn_help(), stninfo(), stnaccess(), stns()\n")
 
