@@ -32,12 +32,12 @@ Output
     arrive(), depart(), fare(), sched_help(), holiday(), routesched(), scheds(), special(), stnsched()
   
   
-Also, there is thorough documentation. writing
+Also, there is thorough documentation. The following...
     
        help(classname.methodname)
        help(classname)
        
-will give you all of the necessary details about a method or class.
+...will give you all of the necessary details about a method or class.
 
 
 ## Methods
