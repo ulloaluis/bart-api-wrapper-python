@@ -2,9 +2,9 @@
 """
 BART API wrapper for Python 3+
 
-This wrapper's main purpose is to display (print) relevant information
-associated with each of the Bart API's amenities, so don't expect too
-many methods to return a value (as they'll probably print it instead)!
+This wrapper's main purpose is to make it easy to make a call to the BART
+API and receive a well-formed string/data that represents the contents of
+the BART return.
 
 BART API Documentation: https://api.bart.gov/docs/overview/index.aspx
 """
@@ -85,65 +85,66 @@ class Bart:
         :param orig: ignore this, bsa doesn't support station specific,
                      announcements but will in the future
         """
-        cmd = 'bsa'
+        cmd, res = 'bsa', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'json': 'y'}
         r = requests.get(self.BSA_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
             time = data['time']
             date = data['date']
-            print("The following announcements were available on %s at %s..." % (date, time))
+            res += "The following announcements were available on %s at %s...\n" % (date, time)
             bsa = data['bsa']
             for elem in bsa:        # each element is a specific service announcement
                 if elem['sms_text']:
-                    print("SMS text announcement: %s" % bsa[-1]['sms_text']['#cdata-section'])
+                    res += "SMS text announcement: %s\n" % bsa[-1]['sms_text']['#cdata-section']
                 if len(elem['station']) > 0:
-                    print("%s: %s" % (elem['station'], elem['description']['#cdata-section']))
+                    res += "%s: %s\n" % (elem['station'], elem['description']['#cdata-section'])
+        return res
 
     def train_count(self):
-        """ Prints/returns count of trains. """
+        """ Returns count of active trains. -1 if error occurs. """
         cmd = 'count'
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.BSA_API_LINK, params=payload)
-        train_count = 0
         if "error" not in r.text:
-            data = r.json()['root']
-            train_count = data['traincount']
-            print("%s trains active on %s at %s." % (train_count, data['date'], data['time']))
-        return train_count
+            return r.json()['root']['traincount']
+        return -1
 
     def elev(self):
-        """ Prints elevator announcement details. """
-        cmd = 'elev'
+        """ Returns elevator announcement details. """
+        cmd, res = 'elev', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.BSA_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
             time = data['time']
             date = data['date']
-            print("The following announcements were available on %s at %s..." % (date, time))
+            res += "The following announcements were available on %s at %s...\n" % (date, time)
             bsa = data['bsa']
 
             for elem in bsa:    # each elem is a service announcement + accompanied sms
                 if elem['sms_text']:
-                    print("SMS text announcement: %s" % elem['sms_text']['#cdata-section'])
+                    res += "SMS text announcement: %s\n" % elem['sms_text']['#cdata-section']
 
                 if len(elem['station']) > 0:
-                    print("%s - %s" % (elem['station'], elem['description']['#cdata-section']))
+                    res += "%s - %s\n" % (elem['station'], elem['description']['#cdata-section'])
+        return res
 
     def elev_help(self):
-        """ Prints commands you can use with API. """
-        cmd = 'help'
+        """ Returns/prints commands you can use with API. """
+        cmd, res = 'help', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.BSA_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
-            print(help_msg)
-            print("bsa(), train_count(), elev(), elev_help()\n")
+            res += help_msg + '\n'
+            res += "bsa(), train_count(), elev(), elev_help()\n"
+        print(res)
+        return res
 
     def etd(self, orig, plat=None, direction=None):
         """
-        Prints estimated departure time for specified station
+        Returns estimated departure time for specified station
 
         :param orig: specific station, using its abbreviation, ALL for all ETD's
         :param plat: specific platform, ranges b/w 1-4
@@ -155,41 +156,43 @@ class Bart:
         if plat is not None and direction is not None:  # preference to plat
             direction = None
 
-        cmd = 'etd'
+        cmd, res = 'etd', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'plat': plat,
                    'dir': direction, 'json': 'y'}
         r = requests.get(self.ETD_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
             date, time = data['date'], data['time']
-            print("Estimated departure time(s) for %s on %s %s..." % (orig, date, time))
+            res += "Estimated departure time(s) for %s on %s %s...\n" % (orig, date, time)
             if not data.get('station') and data.get('message') != "":
-                print(data['message']['warning'])
-                return      # nothing matching
+                res += data['message']['warning'] + '\n'
+                return res      # nothing matching
 
             for station in data.get('station'):
                 name = station['name']
-                print("Departures for %s..." % name)
+                res += "Departures for %s...\n" % name
                 for loc in station.get('etd'):
                     dest = loc['destination']
-                    print("For those leaving to %s:" % dest)
+                    res += "For those leaving to %s:\n" % dest
                     for departure in loc.get('estimate'):
                         minutes = departure['minutes']
                         platform = departure['platform']
                         color = departure['color']
-                        direct = departure['direction']
-                        print("%s bart on platform %s leaving in %s minutes!" % (color, platform, minutes))
-                print()  # spacing b/w each station
+                        res += "%s bart on platform %s leaving in %s minutes!\n" % (color, platform, minutes)
+                res += '\n'  # spacing b/w each station
+        return res
 
     def etd_help(self):
         """ Shows commands for time departure part of api. """
-        cmd = 'help'
+        cmd, res = 'help', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.ETD_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
-            print(help_msg)
-            print("etd(), etd_help()\n")
+            res += help_msg + '\n'
+            res += "etd(), etd_help()\n"
+        print(res)  # show help details to user as well as return
+        return res
 
     def route_info(self, route_num, sched_num=None, date=None):
         """
@@ -201,45 +204,49 @@ class Bart:
 
         Note: don't use schedule and date together, otherwise date is dropped
         """
-        cmd = 'routeinfo'
+        cmd, res = 'routeinfo', ''
         payload = {'cmd': cmd, 'key': self.key, 'route': route_num, 'sched': sched_num, 'date': date, 'json': 'y'}
         r = requests.get(self.ROUTE_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']['routes']['route']
             name, origin, destination, route = data['name'], data['origin'], data['destination'], data['routeID']
-            print('%s is %s, going from %s to %s.' % (route, name, origin, destination))
+            res += '%s is %s, going from %s to %s.\n' % (route, name, origin, destination)
+        return res
 
     def routes(self, sched_num=None, date=None):
         """
-        Prints routes.
+        Returns routes, can specify schedule numbers and dates uniquely.
 
         :param sched_num: schedule number
         :param date: current date
 
         Note: don't use schedule and date together, otherwise date is dropped
         """
-        cmd = 'routes'
+        cmd, res = 'routes', ''
         payload = {'cmd': cmd, 'key': self.key, 'sched': sched_num, 'date': date, 'json': 'y'}
         r = requests.get(self.ROUTE_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']['routes']
             for route in data['route']:
                 name, abbr, route_id = route['name'], route['abbr'], route['routeID']
-                print("%s - %s with abbreviation \"%s\"" % (route_id, name, abbr))
+                res += "%s - %s with abbreviation \"%s\"\n" % (route_id, name, abbr)
+        return res
 
     def route_help(self):
-        """ prints commands for route (note: "help" refers to this method)"""
-        cmd = 'help'
+        """ Returns/prints commands for route (note: "help" refers to this method)"""
+        cmd, res = 'help', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.ROUTE_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']['message']['help']['#cdata-section']
-            print(data)
-            print("route_help(), routes(), route_info()\n")
+            res += data + '\n'
+            res += "route_help(), routes(), route_info()\n"
+        print(res)
+        return res
 
     def arrive(self, orig, dest, time=None, date=None, b=None, a=None, command="arrive"):
         """
-        Requests a trip based on arriving at time specified.
+        Requests a trip based on arriving at specified time, returns a printable statement.
 
         :param orig: origination station (abbreviation)
         :param dest: destination station (abbreviation)
@@ -249,23 +256,24 @@ class Bart:
         :param a: specifies how many trips after specified time should be returned  (0-4, default 2)
         :param command: used internally, no need to declare this, defaults to arrive
         """
-        cmd = command
+        cmd, res = command, ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'dest': dest, 'time': time,
                    'date': date, 'b': b, 'a': a, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
-            print("Trips from %s to %s..." % (data['origin'], data['destination']))
+            res += "Trips from %s to %s...\n" % (data['origin'], data['destination'])
             trips = data['schedule']['request']['trip']
             for i in range(0, len(trips), 2):    # each trip has a leg following it
                 trip = trips[i]
                 # leg = trips[i+1]['leg']   # won't use any data from legs, but know it's here!
-                print("Trip from %s to %s on %s with the following fares..."
-                      % (trip['@origTimeMin'], trip['@destTimeMin'], trip['@origTimeDate']))
-                print("Standard:", trip['@fare'])
+                res += "Trip from %s to %s on %s with the following fares...\n" \
+                       % (trip['@origTimeMin'], trip['@destTimeMin'], trip['@origTimeDate'])
+                res += "Standard: " + trip['@fare'] + '\n'
                 for fare in trip['fares']['fare']:
-                    print("%s: %s (%s)" % (fare['@name'], fare['@amount'], fare['@class']))
-                print()  # spacing
+                    res += "%s: %s (%s)\n" % (fare['@name'], fare['@amount'], fare['@class'])
+                res += '\n'  # spacing
+        return res
 
     def depart(self, orig, dest, time=None, date=None, b=None, a=None):
         """
@@ -279,7 +287,7 @@ class Bart:
         :param b: specifies how many trips before specified time should be returned  (0-4, default 2)
         :param a: specifies how many trips after specified time should be returned  (0-4, default 2)
         """
-        self.arrive(orig, dest, time, date, b, a, "depart")
+        return self.arrive(orig, dest, time, date, b, a, "depart")
 
     def fare(self, orig, dest, date=None, sched=None):
         """
@@ -290,68 +298,73 @@ class Bart:
         :param date: specific date mm/dd/yyyy, current date default
         :param sched: specific schedule to use (optional)
         """
-        cmd = 'fare'
+        cmd, res = 'fare', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'dest': dest, 'date': date, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
-            print("A trip from %s to %s has the following fare..." % (data['origin'], data['destination']))
+            res += "A trip from %s to %s has the following fares...\n" % (data['origin'], data['destination'])
             for fare in data['fares']['fare']:
-                print("%s for %s (%s)" % (fare['@amount'], fare['@name'], fare['@class']))
+                res += "%s for %s (%s)\n" % (fare['@amount'], fare['@name'], fare['@class'])
+        return res
 
     def holiday(self):
-        """ Prints BART schedule type for any holiday. """
-        cmd = 'holiday'
+        """ Returns BART schedule type for any holiday. """
+        cmd, res = 'holiday', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']['holidays'][0]
             for hday in data['holiday']:
                 name, date, sched_type = hday['name'], hday['date'], hday['schedule_type']
-                print("%s on %s has a %s schedule type." % (name, date, sched_type))
+                res += "%s on %s has a %s schedule type.\n" % (name, date, sched_type)
+        return res
 
     def routesched(self, route, date=None, time=None, sched=None):
         """
-        Prints detailed schedule information for a specific route.
+        Returns detailed schedule information for a specific route.
 
         :param route: specifies a route information to return
         :param date: specifies which date mm/dd/yyyy (defaults to today)
         :param time: specifies what time to use hh:mm tt (defaults to now)
         :param sched: specifies schedule to use (defaults to current schedule)
         """
-        cmd = 'routesched'
+        cmd, res = 'routesched', ''
         payload = {'cmd': cmd, 'key': self.key, 'route': route, 'time': time,
                    'date': date, 'sched': sched, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
-            print("For schedule number %s on %s..." % (data['sched_num'], data['date']))
+            res += "For schedule number %s on %s...\n" % (data['sched_num'], data['date'])
             for path in data['route']['train']:
                 stops = ', '.join([loc['@station'] + "(" + loc["@origTime"] + ")"
                                    for loc in path['stop'] if loc.get('@origTime')])
-                print("Train with ID %s has the following stops: %s" % (path['@trainId'], stops))
+                res += "Train with ID %s has the following stops: %s\n" % (path['@trainId'], stops)
+        return res
 
     def scheds(self):
-        """ Prints schedule id's and effective dates. """
-        cmd = 'scheds'
+        """ Returns schedule id's and effective dates. """
+        cmd, res = 'scheds', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         data = r.json()['root']['schedules']
         for sched in data['schedule']:
-            print("Schedule %s has effective date %s" % (sched['@id'], sched['@effectivedate']))
+            res += "Schedule %s has effective date %s\n" % (sched['@id'], sched['@effectivedate'])
+        return res
 
     def special(self):
-        """ Prints information about current and upcoming BART special schedules. """
-        cmd = 'special'
+        """ Returns information about current and upcoming BART special schedules. """
+        cmd, res = 'special', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']['special_schedules']
             for spec in data['special_schedule']:
-                print("From %s to %s: %s" %
-                      (spec['start_date'], spec['end_date'], spec['text']['#cdata-section']))
-                print("The routes affect are %s, more information here: %s" %
-                      (spec['routes_affected'], spec['link']['#cdata-section']))
+                res += "From %s to %s: %s\n" % \
+                      (spec['start_date'], spec['end_date'], spec['text']['#cdata-section'])
+                res += "The routes affect are %s, more information here: %s\n" % \
+                      (spec['routes_affected'], spec['link']['#cdata-section'])
+        return res
 
     def stnsched(self, orig, date=None):
         """
@@ -360,38 +373,41 @@ class Bart:
         :param orig: station for which schedule is requested
         :param date: specifies date to use mm/dd/yy (default today)
         """
-        cmd = 'stnsched'
+        cmd, res = 'stnsched', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'date': date, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             data = r.json()['root']
-            print("%s schedule (%s) details on %s..." %
-                  (data['station']['name'], data['sched_num'], data['date']))
+            res += "%s schedule (%s) details on %s...\n" % \
+                  (data['station']['name'], data['sched_num'], data['date'])
             for route in data['station']['item']:
-                print("Train %s with %s, (Head Station %s): from %s to %s." %
+                res += "Train %s with %s, (Head Station %s): from %s to %s.\n" % \
                       (route['@trainId'], route['@line'], route['@trainHeadStation'],
-                       route['@origTime'], route['@destTime']))
+                       route['@origTime'], route['@destTime'])
+        return res
 
     def sched_help(self):
-        """ Shows commands for time departure part of api. """
-        cmd = 'help'
+        """ Prints/Returns commands for time departure part of api. """
+        cmd, res = 'help', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.SCHED_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
-            print(help_msg)
-            print("arrive(), depart(), fare(), sched_help(), holiday(), routesched(), scheds(), special(), stnsched()\n")
+            res += help_msg + '\n'
+            res += "arrive(), depart(), fare(), sched_help(), holiday(), routesched(), scheds(), special(), stnsched()\n"
+        print(res)
+        return res
 
     def stninfo(self, orig):
         """
-        Prints detailed information on specified station.
+        Returns detailed information on specified station.
         Specifically, station name, full address, link to website,
         The data returned could also be used to show north and south routes
         and platforms, but this function doesn't show that.
 
         :param orig: abbreviated name of target station
         """
-        cmd = 'stninfo'
+        cmd, res = 'stninfo', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'json': 'y'}
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
@@ -399,11 +415,12 @@ class Bart:
             name = data['name']
             address, city, state, zipcode = data['address'], data['city'], data['state'], data['zipcode']
             link = data['link']['#cdata-section']
-            print("%s is at %s, %s, %s %s and can be found at %s." % (name, address, city, state, zipcode, link))
+            res += "%s is at %s, %s, %s %s and can be found at %s.\n" % (name, address, city, state, zipcode, link)
+        return res
 
     def stns(self):
         """ Provides list of BART stations with their abbreviations, full names, and addresses. """
-        cmd = 'stns'
+        cmd, res = 'stns', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
@@ -412,11 +429,12 @@ class Bart:
                 name = station['name']
                 abbr = station['abbr']
                 address, city, state, zipc = station['address'], station['city'], station['state'], station['zipcode']
-                print("%s (\"%s\") is at %s, %s, %s %s." % (name, abbr, address, city, state, zipc))
+                res += "%s (\"%s\") is at %s, %s, %s %s.\n" % (name, abbr, address, city, state, zipc)
+        return res
 
     def stnaccess(self, orig):
         """
-        Displays access/neighborhood info for specified station.
+        Returns access/neighborhood info for specified station.
         Showing the "legend" means showing what each flag in data stands
         for; won't be using that here.
 
@@ -425,7 +443,7 @@ class Bart:
 
         :param orig: target station (use abbreviation)
         """
-        cmd = 'stnaccess'
+        cmd, res = 'stnaccess', ''
         payload = {'cmd': cmd, 'key': self.key, 'orig': orig, 'json': 'y'}
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
@@ -433,25 +451,28 @@ class Bart:
             parking, bike, bike_station, lockers = data['@parking_flag'],data['@bike_flag'],\
                 data['@bike_station_flag'], data['@locker_flag']
 
-            print("%s: " % data['name'])
-            print("Parking:", "yes" if parking == '1' else "no")
-            print("Bike Racks:", "yes" if bike == '1' else "no")
-            print("Bike Station:", "yes" if bike_station == '1' else "no")
-            print("Lockers:",  "yes" if lockers == '1' else "no")
+            res += "%s: " % data['name'] + '\n'
+            res += "Parking: " + ("yes" if parking == '1' else "no") + '\n'
+            res += "Bike Racks: " + ("yes" if bike == '1' else "no") + '\n'
+            res += "Bike Station: " + ("yes" if bike_station == '1' else "no") + '\n'
+            res += "Lockers: " + ("yes" if lockers == '1' else "no") + '\n'
+        return res
 
     def stn_help(self):
-        """ Shows commands for time departure part of api. """
-        cmd = 'help'
+        """ Returns/prints commands for time departure part of api. """
+        cmd, res = 'help', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.STN_API_LINK, params=payload)
         if "error" not in r.text:
             help_msg = r.json()['root']['message']['help']['#cdata-section']
-            print(help_msg)
-            print("stn_help(), stninfo(), stnaccess(), stns()\n")
+            res += help_msg + '\n'
+            res += "stn_help(), stninfo(), stnaccess(), stns()\n"
+        print(res)
+        return res
 
     def version(self):
-        """ Prints version details. """
-        cmd = 'ver'
+        """ Returns version details. """
+        cmd, res = 'ver', ''
         payload = {'cmd': cmd, 'key': self.key, 'json': 'y'}
         r = requests.get(self.VERS_API_LINK, params=payload)
         if "error" not in r.text:
@@ -459,43 +480,59 @@ class Bart:
             api_version = data['apiVersion']
             api_copyright = data['copyright']
             api_license = data['license']
-            print("Version: %s\nCopyright: %s\nLicense: %s\n" % (api_version, api_copyright, api_license))
+            res += "Version: %s\nCopyright: %s\nLicense: %s\n" % (api_version, api_copyright, api_license)
+        print(res)
+        return res
 
     def help(self):
-        """ Display all help messages. """
-        self.route_help()
-        self.elev_help()
-        self.etd_help()
-        self.stn_help()
-        self.sched_help()
+        """ Return/print all help messages. """
+        return self.route_help() \
+            + self.elev_help() \
+            + self.etd_help() \
+            + self.stn_help() \
+            + self.sched_help()
 
 
 if __name__ == "__main__":
     # example usage, see test.py for import formatting
     bart = Bart()
-    # bart.route_info(1)
-    # bart.routes()
-    # bart.route_help()
-    # bart.bsa()
-    # bart.train_count()
-    # bart.elev()
-    # bart.elev_help()
-    # bart.etd('ALL')
-    # bart.etd('RICH', plat=2)
-    # bart.etd('RICH', direction='s')
-    # bart.etd('RICH', plat=2, direction='s')
-    # bart.etd_help()
-    # bart.version()
-    # bart.stninfo('24TH')
-    # bart.stns()
-    # bart.stnaccess('12th')
-    # bart.stn_help()
-    # bart.holiday()
-    bart.help()
-    # bart.arrive("ASHB", "CIVC")
-    # bart.depart("ASHB", "CIVC")
-    # bart.fare("ASHB", "CIVC")
-    # bart.routesched(1)
-    # bart.scheds()
-    # bart.special()
-    # bart.stnsched("ASHB")
+    # print(bart.bsa())
+    # print(bart.train_count())
+
+    # print(bart.elev())
+    # print(bart.elev_help())
+
+    # print(bart.etd('ALL'))
+
+    # print(bart.etd_help())
+
+    # print(bart.route_info(1))
+    # print(bart.routes())
+
+    # print(bart.route_help())
+
+    # print(bart.stninfo('24TH'))
+
+    # print(bart.stns())
+
+    # print(bart.stnaccess('12th'))
+
+    # print(bart.stn_help())
+
+    # print(bart.arrive("ASHB", "CIVC"))
+
+    # print(bart.depart("ASHB", "CIVC"))
+
+    # print(bart.fare("ASHB", "CIVC"))
+
+    # print(bart.routesched(1))
+
+    # print(bart.scheds())
+
+    # print(bart.special())
+
+    # print(bart.stnsched("ASHB"))
+
+    # print(bart.stn_help())
+
+    # print(bart.help())

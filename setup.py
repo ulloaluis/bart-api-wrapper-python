@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bart_api_ulloa",
-    version="0.0.1-1",
+    version="0.0.2",
     author="Luis Ulloa",
     author_email="ulloa@stanford.edu",
-    description="bart api wrapper in python, using json (small bug fix)",
+    description="bart api wrapper in python, now returns data instead of just printing",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ulloaluis/bart-api-wrapper-python",

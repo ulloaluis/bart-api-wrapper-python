@@ -2,8 +2,13 @@
 Bart API Documentation: https://api.bart.gov/docs/overview/index.aspx
 
 Every amenity from the Bay Area Rapid Transit (BART) API is implemented in some way.
-The methods sections below shows the available methods. The majority of these
-methods will print something to terminal instead of returning values.
+The methods sections below shows the available methods. 
+
+Each API method will return relevant data, usually with new line characters so that when
+the string is printed, well-formed information is printed. The second branch of this
+project, BartApiForPrintingInfo, will always print the data. 
+
+One exception: the help class methods, which both return data and print it to screen.
 
 Use the help class methods to see what the syntax is for invoking a bart command.
 

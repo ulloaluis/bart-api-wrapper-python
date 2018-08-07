@@ -3,29 +3,43 @@ from bart_lib.bart import *
 if __name__ == "__main__":
     # example usage
     bart = Bart()
-    bart.route_info(1)
-    bart.routes()
-    bart.route_help()
-    bart.bsa()
-    bart.train_count()
-    bart.elev()
-    bart.elev_help()
-    bart.etd('ALL')
-    bart.etd('RICH', plat=2)
-    bart.etd('RICH', direction='s')
-    bart.etd('RICH', plat=2, direction='s')
-    bart.etd_help()
-    bart.version()
-    bart.stninfo('24TH')
-    bart.stns()
-    bart.stnaccess('12th')
-    bart.stn_help()
-    bart.holiday()
-    bart.help()
-    bart.arrive("ASHB", "CIVC")
-    bart.depart("ASHB", "CIVC")
-    bart.fare("ASHB", "CIVC")
-    bart.routesched(1)
-    bart.scheds()
-    bart.special()
-    bart.stnsched("ASHB")
+    print(bart.bsa())
+    print(bart.train_count())
+
+    print(bart.elev())
+    print(bart.elev_help())
+
+    print(bart.etd('ALL'))
+
+    print(bart.etd_help())
+
+    print(bart.route_info(1))
+    print(bart.routes())
+
+    print(bart.route_help())
+
+    print(bart.stninfo('24TH'))
+
+    print(bart.stns())
+
+    print(bart.stnaccess('12th'))
+
+    print(bart.stn_help())
+
+    print(bart.arrive("ASHB", "CIVC"))
+
+    print(bart.depart("ASHB", "CIVC"))
+
+    print(bart.fare("ASHB", "CIVC"))
+
+    print(bart.routesched(1))
+
+    print(bart.scheds())
+
+    print(bart.special())
+
+    print(bart.stnsched("ASHB"))
+
+    print(bart.stn_help())
+
+    print(bart.help())
