@@ -3,7 +3,8 @@ Bart API Documentation: https://api.bart.gov/docs/overview/index.aspx
 
 Every amenity from the Bay Area Rapid Transit (BART) API is implemented in some way.
 The methods sections below shows the available methods. The majority of these
-methods will print something to terminal instead of returning values.
+methods will print something to terminal instead of returning values, see the master
+branch if you want a wrapper that returns the data as a string instead of printing.
 
 Use the help class methods to see what the syntax is for invoking a bart command.
 
@@ -92,7 +93,9 @@ Also, there is thorough documentation. The following...
     version()
    
 ## Installing
-There's a package on PyPI.
+There's a package on PyPI. However, this is for the master branch version of this
+API wrapper, so most methods return strings with the info that this wrapper prints.
+This just means you'll have to call print on the data returned.
 
     pip3 install bart-api-ulloa
 
